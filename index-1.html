@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shortest Path and Route Optimization</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef1ee;--panel:#fbfcfa;--ink:#16232e;--mute:#586873;--line:#cdd6d2;--grid:#dde4e0;--wall:#16232e;--mud:#c9a86a;--vis:#9fd3cb;--path:#d4155a;--start:#1f7a4d;--end:#2b4fd8;
+--serif:'Newsreader',Georgia,serif;--sans:'IBM Plex Sans',system-ui,sans-serif;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10181f;--panel:#17222b;--ink:#e6ecea;--mute:#93a4ad;--line:#2b3a45;--grid:#233039;--wall:#e6ecea;--mud:#8a6f3a;--vis:#2f6f69;--path:#ff4f8b;--start:#4fd08b;--end:#7b98ff}}
+:root[data-theme="dark"]{--bg:#10181f;--panel:#17222b;--ink:#e6ecea;--mute:#93a4ad;--line:#2b3a45;--grid:#233039;--wall:#e6ecea;--mud:#8a6f3a;--vis:#2f6f69;--path:#ff4f8b;--start:#4fd08b;--end:#7b98ff}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans)}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+header{padding:48px 0 24px;border-bottom:1px solid var(--line)}
+header p.meta{margin:0 0 10px;color:var(--mute);font-size:14px}
+h1{font:600 clamp(34px,6vw,64px)/1.05 var(--serif);margin:0 0 14px;letter-spacing:-.02em;max-width:16em}
+header p.lead{max-width:44em;color:var(--mute);margin:0}
+nav{display:flex;gap:18px;flex-wrap:wrap;margin-top:22px;font-size:15px}
+nav a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line);padding-bottom:2px}
+nav a:hover,nav a:focus-visible{border-color:var(--path)}
+section{padding:44px 0;border-bottom:1px solid var(--line)}
+h2{font:600 clamp(24px,3.5vw,34px)/1.15 var(--serif);margin:0 0 8px}
+h3{font:600 19px var(--serif);margin:22px 0 6px}
+p{max-width:46em}
+.sub{color:var(--mute);margin:0 0 18px}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}
+button,select{font:500 14px var(--sans);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:9px 14px;cursor:pointer;min-height:40px}
+button.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:hover{border-color:var(--ink)}
+:focus-visible{outline:2px solid var(--path);outline-offset:2px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--panel)}
+.seg label{padding:9px 13px;font-size:14px;cursor:pointer;border-right:1px solid var(--line);min-height:40px;display:flex;align-items:center;gap:6px}
+.seg label:last-child{border:0}
+.seg input{accent-color:var(--path)}
+.seg label:has(input:checked){background:var(--ink);color:var(--bg)}
+canvas{display:block;width:100%;height:auto;background:var(--panel);border:1px solid var(--line);border-radius:6px;touch-action:none}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--mute);margin:10px 0}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.stats{display:flex;flex-wrap:wrap;gap:24px;margin:14px 0}
+.stats div{min-width:110px}
+.stats b{display:block;font:600 28px var(--serif)}
+.stats span{font-size:13px;color:var(--mute)}
+table{border-collapse:collapse;width:100%;max-width:640px;font-size:14px;margin:12px 0}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{font-weight:600}
+.scroll{overflow-x:auto}
+.eq{font:italic 18px var(--serif);background:var(--panel);border-left:3px solid var(--path);padding:10px 16px;margin:12px 0;max-width:34em;overflow-x:auto}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:28px}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.9em}
+footer{padding:28px 0 48px;color:var(--mute);font-size:14px}
+.note{font-size:13px;color:var(--mute);margin:6px 0 0}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<p class="meta">Computational Mathematics Laboratory · Project</p>
+<h1>Shortest Path and Route Optimization</h1>
+<p class="lead">Finding the cheapest way through a network is a graph problem. This page implements three shortest-path algorithms and two route-optimization heuristics, and lets you run each one on your own data.</p>
+<nav aria-label="Sections"><a href="#objective">Objective</a><a href="#path">Shortest path lab</a><a href="#route">Route optimization lab</a><a href="#math">Mathematics</a><a href="#conclusion">Conclusion</a></nav>
+</div></header>
+
+<main class="wrap">
+<section id="objective">
+<h2>Objective</h2>
+<p>Model a map as a weighted graph <i>G = (V, E, w)</i> and compute (1) the minimum-cost path between two vertices, and (2) a short closed tour that visits every city once. We compare BFS, Dijkstra and A* by the number of nodes each explores, and compare nearest-neighbour with 2-opt improvement by tour length.</p>
+</section>
+
+<section id="path">
+<h2>Shortest path lab</h2>
+<p class="sub">Each grid cell is a vertex joined to its four neighbours. Entering a mud cell costs 5, any other cell costs 1.</p>
+<div class="tools">
+<select id="alg" aria-label="Algorithm"><option value="dijkstra">Dijkstra</option><option value="astar">A* (Manhattan)</option><option value="bfs">BFS (ignores weights)</option></select>
+<button class="primary" id="run">Run</button>
+<button id="cmp">Compare all</button>
+<button id="maze">Random walls</button>
+<button id="clr">Clear</button>
+</div>
+<div class="tools">
+<span class="seg" role="radiogroup" aria-label="Draw tool">
+<label><input type="radio" name="tool" value="1" checked>Wall</label>
+<label><input type="radio" name="tool" value="2">Mud</label>
+<label><input type="radio" name="tool" value="0">Erase</label></span>
+<label>Speed <input type="range" id="spd" min="1" max="30" value="8"></label>
+</div>
+<canvas id="g" width="960" height="480" aria-label="Grid for path finding"></canvas>
+<div class="legend"><span><i style="background:var(--start)"></i>Start (drag)</span><span><i style="background:var(--end)"></i>End (drag)</span><span><i style="background:var(--wall)"></i>Wall</span><span><i style="background:var(--mud)"></i>Mud, cost 5</span><span><i style="background:var(--vis)"></i>Explored</span><span><i style="background:var(--path)"></i>Shortest path</span></div>
+<div class="stats"><div><b id="sV">–</b><span>nodes explored</span></div><div><b id="sL">–</b><span>path length (steps)</span></div><div><b id="sC">–</b><span>total cost</span></div><div><b id="sT">–</b><span>time (ms)</span></div></div>
+<div class="scroll" id="cmpOut"></div>
+</section>
+
+<section id="route">
+<h2>Route optimization lab</h2>
+<p class="sub">Visit every city once and return to the start (travelling salesman problem). Click the map to add a city.</p>
+<div class="tools">
+<label>Cities <input type="range" id="n" min="5" max="60" value="25"> <span id="nv">25</span></label>
+<button id="newp">New cities</button>
+<button id="rnd">Random tour</button>
+<button id="nn">Nearest neighbour</button>
+<button class="primary" id="opt">Improve with 2-opt</button>
+</div>
+<canvas id="t" width="960" height="500" aria-label="Map of cities and tour"></canvas>
+<div class="stats"><div><b id="tL">–</b><span>tour length</span></div><div><b id="tS">–</b><span>2-opt swaps</span></div><div><b id="tG">–</b><span>saved vs. start</span></div></div>
+<p class="note">Tip: run Nearest neighbour first, then 2-opt, and watch crossing edges disappear.</p>
+</section>
+
+<section id="math">
+<h2>Mathematics</h2>
+<div class="cols">
+<div>
+<h3>Dijkstra</h3>
+<p>Settles the vertex with the smallest known distance, then relaxes its edges. Requires w ≥ 0.</p>
+<div class="eq">d(v) ← min( d(v), d(u) + w(u,v) )</div>
+</div>
+<div>
+<h3>A*</h3>
+<p>Orders vertices by estimated total cost. With a consistent heuristic <i>h</i> it returns the same optimal path while exploring fewer vertices.</p>
+<div class="eq">f(v) = g(v) + h(v)</div>
+</div>
+<div>
+<h3>2-opt</h3>
+<p>Removes edges (a,b) and (c,d), reconnects as (a,c) and (b,d) when that shortens the tour, and repeats until no swap helps.</p>
+<div class="eq">Δ = d(a,c) + d(b,d) − d(a,b) − d(c,d) &lt; 0</div>
+</div>
+</div>
+<h3>Complexity</h3>
+<div class="scroll"><table>
+<tr><th>Method</th><th>Time</th><th>Optimal?</th></tr>
+<tr><td>BFS</td><td>O(V + E)</td><td>Only when all weights are equal</td></tr>
+<tr><td>Dijkstra (binary heap)</td><td>O((V + E) log V)</td><td>Yes, for w ≥ 0</td></tr>
+<tr><td>A*</td><td>Depends on h; never worse in nodes explored than Dijkstra</td><td>Yes, if h is admissible and consistent</td></tr>
+<tr><td>Nearest neighbour</td><td>O(n²)</td><td>No, a heuristic</td></tr>
+<tr><td>2-opt</td><td>O(n²) per pass</td><td>No, reaches a local optimum</td></tr>
+<tr><td>Exact TSP (Held–Karp)</td><td>O(n² 2ⁿ)</td><td>Yes, but only for small n</td></tr>
+</table></div>
+<p class="note">The grid demo here uses a simple scan to pick the next vertex (O(V²)), which is fast enough for 512 cells; a heap is the standard choice for large graphs.</p>
+</section>
+
+<section id="conclusion">
+<h2>Conclusion</h2>
+<p>Dijkstra and A* both find minimum-cost paths, and A* explores far fewer cells because the heuristic points it at the goal. BFS finds the fewest steps, which is not the cheapest route once terrain has different costs. For the route problem, no fast algorithm is known that always finds the best tour, so heuristics such as nearest neighbour plus 2-opt give a good answer quickly.</p>
+<h3>References</h3>
+<p>Cormen, Leiserson, Rivest and Stein, <i>Introduction to Algorithms</i> · Hart, Nilsson and Raphael (1968), A* paper · Dijkstra (1959), "A note on two problems in connexion with graphs".</p>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id), css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+/* ---------- Shortest path ---------- */
+const C=32,R=16,S=30,N=C*R, gc=$('g'), gx=gc.getContext('2d');
+let grid=new Uint8Array(N), start=3*C+4, end=11*C+27, vis=new Uint8Array(N), path=[], anim=0, drag=null;
+const nbrs=i=>{const x=i%C,y=i/C|0,a=[];if(x>0)a.push(i-1);if(x<C-1)a.push(i+1);if(y>0)a.push(i-C);if(y<R-1)a.push(i+C);return a};
+const wt=i=>grid[i]==2?5:1;
+function solve(alg){
+ const t0=performance.now(),g=new Array(N).fill(Infinity),prev=new Array(N).fill(-1),done=new Uint8Array(N),order=[];
+ const h=i=>Math.abs(i%C-end%C)+Math.abs((i/C|0)-(end/C|0));
+ g[start]=0;let open=[start];
+ while(open.length){
+  let bi=0;
+  if(alg!='bfs'){let bf=Infinity;for(let k=0;k<open.length;k++){const n=open[k],f=g[n]+(alg=='astar'?h(n):0);if(f<bf){bf=f;bi=k}}}
+  const u=open.splice(bi,1)[0];
+  if(done[u])continue;done[u]=1;order.push(u);if(u==end)break;
+  for(const v of nbrs(u)){
+   if(grid[v]==1||done[v])continue;
+   if(alg=='bfs'){if(g[v]==Infinity){g[v]=g[u]+1;prev[v]=u;open.push(v)}}
+   else{const ng=g[u]+wt(v);if(ng<g[v]){g[v]=ng;prev[v]=u;open.push(v)}}
+  }
+ }
+ const p=[];let cost=0;
+ if(done[end]){for(let c=end;c!=-1;c=prev[c]){p.push(c);if(c!=start)cost+=wt(c)}p.reverse()}
+ return{order,path:p,cost,ms:performance.now()-t0};
+}
+function draw(){
+ const bg=css('--panel'),gr=css('--grid');
+ gx.fillStyle=bg;gx.fillRect(0,0,960,480);
+ for(let i=0;i<N;i++){
+  const x=(i%C)*S,y=(i/C|0)*S;
+  if(vis[i]){gx.fillStyle=css('--vis');gx.fillRect(x,y,S,S)}
+  if(grid[i]==1){gx.fillStyle=css('--wall');gx.fillRect(x+1,y+1,S-2,S-2)}
+  if(grid[i]==2){gx.fillStyle=css('--mud');gx.fillRect(x+1,y+1,S-2,S-2)}
+ }
+ gx.strokeStyle=gr;gx.lineWidth=1;gx.beginPath();
+ for(let x=0;x<=C;x++){gx.moveTo(x*S+.5,0);gx.lineTo(x*S+.5,480)}
+ for(let y=0;y<=R;y++){gx.moveTo(0,y*S+.5);gx.lineTo(960,y*S+.5)}
+ gx.stroke();
+ if(path.length){gx.strokeStyle=css('--path');gx.lineWidth=5;gx.lineJoin='round';gx.beginPath();
+  path.forEach((c,k)=>{const x=(c%C)*S+S/2,y=(c/C|0)*S+S/2;k?gx.lineTo(x,y):gx.moveTo(x,y)});gx.stroke()}
+ [[start,'--start'],[end,'--end']].forEach(([c,v])=>{gx.fillStyle=css(v);gx.beginPath();gx.arc((c%C)*S+S/2,(c/C|0)*S+S/2,S/2-3,0,7);gx.fill()});
+}
+function reset(){cancelAnimationFrame(anim);vis.fill(0);path=[];draw()}
+function show(r){$('sV').textContent=r.order.length;$('sL').textContent=r.path.length?r.path.length-1:'none';$('sC').textContent=r.path.length?r.cost:'no path';$('sT').textContent=r.ms.toFixed(2)}
+$('run').onclick=()=>{
+ reset();const r=solve($('alg').value);show(r);let k=0;
+ const step=()=>{const s=+$('spd').value;for(let j=0;j<s&&k<r.order.length;j++)vis[r.order[k++]]=1;
+  if(k<r.order.length){draw();anim=requestAnimationFrame(step)}else{path=r.path;draw()}};
+ step();
+};
+$('cmp').onclick=()=>{
+ reset();const nm={bfs:'BFS',dijkstra:'Dijkstra',astar:'A*'};
+ let h='<table><tr><th>Algorithm</th><th>Explored</th><th>Steps</th><th>Cost</th></tr>';
+ for(const a of['bfs','dijkstra','astar']){const r=solve(a);h+=`<tr><td>${nm[a]}</td><td>${r.order.length}</td><td>${r.path.length?r.path.length-1:'–'}</td><td>${r.path.length?r.cost:'–'}</td></tr>`}
+ $('cmpOut').innerHTML=h+'</table>';
+};
+$('maze').onclick=()=>{reset();for(let i=0;i<N;i++)grid[i]=Math.random()<.25?1:(Math.random()<.08?2:0);grid[start]=grid[end]=0;draw()};
+$('clr').onclick=()=>{grid.fill(0);reset();$('cmpOut').innerHTML=''};
+const cellAt=e=>{const r=gc.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)/r.width*C),y=Math.floor((e.clientY-r.top)/r.height*R);return(x<0||y<0||x>=C||y>=R)?-1:y*C+x};
+function paint(e){
+ const c=cellAt(e);if(c<0)return;
+ if(drag=='s'||drag=='e'){if(grid[c]==1||c==start||c==end)return;if(drag=='s')start=c;else end=c;grid[c]=0}
+ else{if(c==start||c==end)return;grid[c]=+document.querySelector('input[name=tool]:checked').value}
+ vis.fill(0);path=[];draw();
+}
+gc.onpointerdown=e=>{gc.setPointerCapture(e.pointerId);cancelAnimationFrame(anim);const c=cellAt(e);drag=c==start?'s':c==end?'e':'p';paint(e)};
+gc.onpointermove=e=>{if(drag)paint(e)};
+gc.onpointerup=gc.onpointercancel=()=>drag=null;
+/* ---------- Route optimization ---------- */
+const tc=$('t'),tx=tc.getContext('2d');let pts=[],tour=[],tmr=0,base=0,swaps=0;
+const D=(a,b)=>Math.hypot(pts[a][0]-pts[b][0],pts[a][1]-pts[b][1]);
+const len=()=>tour.reduce((s,c,i)=>s+D(c,tour[(i+1)%tour.length]),0);
+function newPts(){clearInterval(tmr);const n=+$('n').value;pts=Array.from({length:n},()=>[30+Math.random()*900,30+Math.random()*440]);tour=pts.map((_,i)=>i);base=len();swaps=0;tdraw()}
+function tdraw(){
+ tx.fillStyle=css('--panel');tx.fillRect(0,0,960,500);
+ if(tour.length>1){tx.strokeStyle=css('--path');tx.lineWidth=2.5;tx.lineJoin='round';tx.beginPath();
+  tour.forEach((c,i)=>{const[x,y]=pts[c];i?tx.lineTo(x,y):tx.moveTo(x,y)});tx.closePath();tx.stroke()}
+ pts.forEach(([x,y],i)=>{tx.fillStyle=i==tour[0]?css('--start'):css('--ink');tx.beginPath();tx.arc(x,y,i==tour[0]?8:5,0,7);tx.fill()});
+ const L=len();$('tL').textContent=L.toFixed(0);$('tS').textContent=swaps;$('tG').textContent=base?Math.max(0,(1-L/base)*100).toFixed(1)+'%':'–';
+}
+function setStart(){base=len();swaps=0}
+$('newp').onclick=newPts;$('n').oninput=()=>{$('nv').textContent=$('n').value;newPts()};
+$('rnd').onclick=()=>{clearInterval(tmr);for(let i=tour.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[tour[i],tour[j]]=[tour[j],tour[i]]}setStart();tdraw()};
+$('nn').onclick=()=>{clearInterval(tmr);const left=new Set(pts.map((_,i)=>i));let c=0;tour=[0];left.delete(0);
+ while(left.size){let b=-1,bd=Infinity;left.forEach(j=>{const d=D(c,j);if(d<bd){bd=d;b=j}});tour.push(b);left.delete(b);c=b}setStart();tdraw()};
+function twoOpt(){const n=tour.length;
+ for(let i=1;i<n-1;i++)for(let j=i+1;j<n;j++){
+  const a=tour[i-1],b=tour[i],c=tour[j],d=tour[(j+1)%n];
+  if(D(a,c)+D(b,d)-D(a,b)-D(c,d)<-1e-9){const seg=tour.slice(i,j+1).reverse();tour.splice(i,seg.length,...seg);swaps++;return true}
+ }return false}
+$('opt').onclick=()=>{clearInterval(tmr);tmr=setInterval(()=>{if(!twoOpt())clearInterval(tmr);tdraw()},60)};
+tc.onpointerdown=e=>{const r=tc.getBoundingClientRect();pts.push([(e.clientX-r.left)/r.width*960,(e.clientY-r.top)/r.height*500]);tour.push(pts.length-1);setStart();tdraw()};
+matchMedia('(prefers-color-scheme:dark)').onchange=()=>{draw();tdraw()};
+draw();newPts();
+</script>
+</body>
+</html>
